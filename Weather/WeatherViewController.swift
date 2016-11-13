@@ -8,14 +8,13 @@
 
 import UIKit
 import Alamofire
+import CoreLocation
 
-class WeatherViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class WeatherViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, CLLocationManagerDelegate {
     
     var currentWeather : CurrentWeather!
     var forecast : Forecast!
-    
     var arrayOfForecasts = [Forecast]()
-    
 
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var currentWeatherType: UILabel!
@@ -24,12 +23,43 @@ class WeatherViewController: UIViewController, UITableViewDelegate, UITableViewD
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var currentTempLabel: UILabel!
     
+    let locationManager = CLLocationManager()
+    var currentPosition: CLLocation!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startMonitoringSignificantLocationChanges()
+        
         tableView.delegate = self
         tableView.dataSource = self
         
         currentWeather = CurrentWeather()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(true)
+        locationAuthStatus()
+        
+    }
+    
+    func locationAuthStatus(){
+        if CLLocationManager.authorizationStatus() == .authorizedWhenInUse{
+            currentPosition = locationManager.location
+            Location.sharedInstance.latitude = currentPosition.coordinate.latitude
+            Location.sharedInstance.longitude = currentPosition.coordinate.longitude
+            loadWeather()
+
+        }else{
+            locationManager.requestWhenInUseAuthorization()
+            locationAuthStatus()
+        }
+    }
+    
+    func loadWeather() {
         currentWeather.downloadWeatherDetails {
             self.downloadForecastData {
                 self.updateMainUI()
@@ -80,8 +110,6 @@ class WeatherViewController: UIViewController, UITableViewDelegate, UITableViewD
         }else{
             return WeatherCell()
         }
-        
-        
     }
     
     func updateMainUI(){

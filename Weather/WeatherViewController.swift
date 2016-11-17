@@ -69,15 +69,17 @@ class WeatherViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     func downloadForecastData(completed: @escaping DownloadComplete) {
         //setup tableview
-        let forecastURL = URL(string: forecastUrlString)!
-        Alamofire.request(forecastURL).responseJSON { response in
-            let result = response.result
-            print(response)
-            if let dict = result.value as? Dictionary<String, Any>{
-                self.parseDict(dict: dict)
+        DispatchQueue.global().async {
+            let forecastURL = URL(string: forecastUrlString)!
+            Alamofire.request(forecastURL).responseJSON { response in
+                let result = response.result
+                print(response)
+                if let dict = result.value as? Dictionary<String, Any>{
+                    self.parseDict(dict: dict)
+                }
+                self.tableView.reloadData()
+                completed()
             }
-            self.tableView.reloadData()
-            completed()
         }
     }
     
@@ -113,19 +115,14 @@ class WeatherViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
     
     func updateMainUI(){
-        dateLabel.text = currentWeather.date
-        currentTempLabel.text = "\(currentWeather.currentTemp)"
-        currentWeatherType.text = currentWeather.weatherType
-        currentLocation.text = currentWeather.cityName
-        currentWeatherImage.image = UIImage(named: currentWeather.weatherType)
+        DispatchQueue.main.async {
+            self.dateLabel.text = self.currentWeather.date
+            self.currentTempLabel.text = "\(self.currentWeather.currentTemp)"
+            self.currentWeatherType.text = self.currentWeather.weatherType
+            self.currentLocation.text = self.currentWeather.cityName
+            self.currentWeatherImage.image = UIImage(named: self.currentWeather.weatherType)
+        }
     }
     
-    
-
-    
-    
-    
-    
-
 }
 

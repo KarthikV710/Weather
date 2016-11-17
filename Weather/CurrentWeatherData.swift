@@ -49,12 +49,14 @@ class CurrentWeather {
     
     func downloadWeatherDetails(completed: @escaping DownloadComplete) {
         //AlamoFire download
-        Alamofire.request(currentWeatherURL).responseJSON { response in
-            let result = response.result
-            if let dict = result.value as? Dictionary<String, AnyObject>{
-                self.parseReponse(dict: dict)
+        DispatchQueue.global().async {
+            Alamofire.request(currentWeatherURL).responseJSON { response in
+                let result = response.result
+                if let dict = result.value as? Dictionary<String, AnyObject>{
+                    self.parseReponse(dict: dict)
+                }
+                completed()
             }
-            completed()
         }
     }
     
